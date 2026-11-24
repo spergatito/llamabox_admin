@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LlamaBox (Administrador)</title>
+  <style>
+    :root {
+      --bg-outer: #442624;
+      --bg-main: #ffcf9f;
+      --bg-panel: #d59d82;
+      --ink: #442624;
+      --ink-muted: #6d433e;
+      --accent-blue: #cbe1ea;
+      --accent-green: #b8e0c2;
+      --accent-amber: #f7d98c;
+      --accent-red: #f2a69c;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-outer);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* CAJA CONTENEDORA PRINCIPAL */
+    .app-shell {
+      width: 100%;
+      max-width: 1400px;
+      height: 90vh;
+      min-height: 620px;
+      background-color: var(--bg-main);
+      border: 5px solid var(--bg-panel);
+      outline: 4px solid var(--ink);
+      border-radius: 28px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+
+    /* BARRA SUPERIOR */
+    .topbar {
+      height: 68px;
+      background-color: var(--bg-panel);
+      border-bottom: 4px solid var(--ink);
+      padding: 0 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-badge {
+      background-color: var(--bg-main);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    /* BOTONES ESTILO PILDORA */
+    .btn {
+      background-color: var(--bg-main);
+      color: var(--ink);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: transform 0.12s ease, filter 0.12s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      filter: brightness(0.96);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-green { background-color: var(--accent-green); }
+    .btn-blue { background-color: var(--accent-blue); }
+    .btn-amber { background-color: var(--accent-amber); }
+    .btn-red { background-color: var(--accent-red); }
+    .btn-sm { padding: 6px 14px; font-size: 0.82rem; }
+
+    /* CONTROL DE VISTAS */
+    .view-section {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+    }
+
+    .view-section.active {
+      display: flex;
+    }
+
+    /* VISTA 1: LOGIN */
+    .login-wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 460px;
+      background-color: var(--bg-panel);
+      border: 4px solid var(--ink);
+      border-radius: 26px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .login-header {
+      text-align: center;
+    }
+
+    .login-header h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .login-header p {
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      font-weight: 600;
+    }
+
+    .field-block {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-block label {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding-left: 8px;
+    }
+
+    input, select, textarea {
+      background-color: var(--bg-main);
+      color: var(--ink);
+      border: 2.5px solid var(--ink);
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      width: 100%;
+    }
+
+    textarea {
+      border-radius: 18px;
+      min-height: 76px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: 3px solid var(--accent-blue);
+    }
+
+    .test-box {
+      margin-top: 6px;
+      padding-top: 16px;
+      border-top: 2.5px dashed var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .test-note {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    /* VISTA 2: MENU PRINCIPAL */
+    .menu-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      gap: 28px;
+      overflow-y: auto;
+    }
+
+    .menu-title {
+      text-align: center;
+    }
+
+    .menu-title h2 {
+      font-size: 1.8rem;
+      font-weight: 800;
+    }
+
+    .menu-title p {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+      margin-top: 4px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      width: 100%;
+      max-width: 1040px;
+    }
+
+    .menu-card {
+      background-color: var(--bg-panel);
+      border: 3.5px solid var(--ink);
+      border-radius: 26px;
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--ink);
+      transition: transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .menu-card:hover {
+      transform: translateY(-4px);
+      background-color: #dfab91;
+    }
+
+    .icon-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background-color: var(--bg-main);
+      border: 3px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-card h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .menu-card span {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--ink-muted);
+    }
+
+    /* VISTA 3: INVENTARIO */
+    .inv-layout {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .inv-sidebar {
+      width: 350px;
+      min-width: 310px;
+      background-color: var(--bg-panel);
+      border-right: 4px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+      padding: 18px;
+      gap: 14px;
+    }
+
+    .product-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+    }
+
+    .prod-card {
+      background-color: var(--bg-main);
+      border: 2.5px solid var(--ink);
+      border-radius: 18px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.1s ease;
+    }
+
+    .prod-card:hover {
+      transform: translateX(3px);
+    }
+
+    .prod-card.selected {
+      background-color: var(--accent-blue);
+      border-width: 3px;
+    }
+
+    .prod-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .sku-pill {
+      background-color: var(--bg-panel);
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .stock-pill {
+      background-color: var(--accent-green);
+      border: 2px solid var(--ink);
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    .prod-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .prod-price {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--ink-muted);
+      margin-top: 2px;
+    }
+
+    .sidebar-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-top: 12px;
+      border-top: 3px solid var(--ink);
+    }
+
+    .inv-editor {
+      flex: 1;
+      padding: 22px 28px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .editor-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 3px solid var(--ink);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .editor-top h2 {
+      font-size: 1.25rem;
+      font-weight: 800;
+    }
+
+    .editor-actions-top {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .span-2 { grid-column: span 2; }
+    .span-4 { grid-column: 1 / -1; }
+
+    .specs-panel {
+      background-color: var(--bg-panel);
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .specs-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .spec-item {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .editor-bottom {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 3px solid var(--ink);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* VISTA 4: MANUAL */
+    .manual-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      gap: 14px;
+    }
+
+    .manual-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .manual-frame {
+      flex: 1;
+      width: 100%;
+      border: 3.5px solid var(--ink);
+      border-radius: 20px;
+      background-color: #ffffff;
+    }
+
+    /* MODALES */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(68, 38, 36, 0.72);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 820px;
+      max-height: 86vh;
+      background-color: var(--bg-main);
+      border: 4px solid var(--ink);
+      border-radius: 26px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow-y: auto;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--ink);
+    }
+
+    .preview-area {
+      background-color: var(--bg-panel);
+      border: 2.5px solid var(--ink);
+      border-radius: 18px;
+      padding: 14px;
+      font-family: Consolas, monospace;
+      font-size: 0.84rem;
+      min-height: 170px;
+      max-height: 240px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .cloud-box {
+      background-color: var(--bg-panel);
+      border: 3px solid var(--ink);
+      border-radius: 20px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cloud-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    .cloud-log {
+      background-color: var(--bg-main);
+      border: 2px solid var(--ink);
+      border-radius: 12px;
+      padding: 10px;
+      font-family: Consolas, monospace;
+      font-size: 0.8rem;
+      max-height: 95px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* NOTIFICACIONES EMERGENTES */
+    .toast-container {
+      position: absolute;
+      bottom: 20px;
+      right: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 100;
+      pointer-events: none;
+    }
+
+    .toast {
+      background-color: var(--accent-green);
+      color: var(--ink);
+      border: 3px solid var(--ink);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 0.88rem;
+      font-weight: 800;
+      box-shadow: 0 8px 20px rgba(68, 38, 36, 0.25);
+      animation: fadeSlide 0.25s ease;
+    }
+
+    .toast.info { background-color: var(--accent-blue); }
+    .toast.warn { background-color: var(--accent-amber); }
+    .toast.error { background-color: var(--accent-red); }
+
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--ink); border-radius: 999px; }
+  </style>
+  <script>
+    function irAVista(viewId) {
+      var views = document.querySelectorAll(".view-section");
+      for (var i = 0; i < views.length; i++) {
+        views[i].classList.remove("active");
+      }
+      var target = document.getElementById(viewId);
+      if (target) {
+        target.classList.add("active");
+      }
+      var btnBack = document.getElementById("btnBackMenu");
+      if (btnBack) {
+        btnBack.style.display = (viewId === "viewInventory" || viewId === "viewManual") ? "inline-flex" : "none";
+      }
+      if (viewId === "viewInventory" && typeof window.cargarDesdeSheets === "function") {
+        window.cargarDesdeSheets();
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div class="app-shell">
+    <!-- BARRA SUPERIOR -->
+    <header class="topbar">
+      <div class="brand-title">
+        <span>LlamaBox</span>
+        <span class="brand-badge">Administrador</span>
+      </div>
+      <div id="topbarRight">
+        <button type="button" class="btn btn-sm" id="btnBackMenu" style="display:none;" onclick="irAVista('viewMenu')">← Volver al menú</button>
+      </div>
+    </header>
+
+    <!-- VISTA 1: INICIO DE SESIÓN -->
+    <section id="viewLogin" class="view-section active">
+      <div class="login-wrapper">
+        <div class="login-card">
+          <div class="login-header">
+            <h1>Iniciar Sesión</h1>
+            <p>Panel de control de LlamaBox</p>
+          </div>
+
+          <div class="field-block">
+            <label for="loginEmail">Correo electrónico</label>
+            <input type="email" id="loginEmail" placeholder="admin@llamabox.com">
+          </div>
+
+          <div class="field-block">
+            <label for="loginPass">Contraseña</label>
+            <input type="password" id="loginPass" placeholder="••••••••">
+          </div>
+
+          <button type="button" class="btn btn-green" id="btnLoginSubmit">Entrar al panel</button>
+
+          <div class="test-box">
+            <span class="test-note">Acceso rápido habilitado únicamente para probar el sitio</span>
+            <button type="button" class="btn btn-amber" id="btnSkipLogin" onclick="irAVista('viewMenu')">Saltar inicio de sesión (Modo prueba)</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA 2: MENÚ PRINCIPAL -->
+    <section id="viewMenu" class="view-section">
+      <div class="menu-wrapper">
+        <div class="menu-title">
+          <h2>Menú Principal</h2>
+          <p>Selecciona el módulo que deseas administrar</p>
+        </div>
+
+        <div class="menu-grid">
+          <div class="menu-card" id="cardGoInventory" onclick="irAVista('viewInventory')">
+            <div class="icon-circle">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#442624" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+            </div>
+            <h3>Inventario</h3>
+            <span>Editar catálogo, precios, descuentos, stock y subir cambios</span>
+          </div>
+
+          <div class="menu-card" id="cardGoManual" onclick="irAVista('viewManual')">
+            <div class="icon-circle">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#442624" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+            </div>
+            <h3>Manual</h3>
+            <span>Consultar documentación y guía de uso de LlamaBox</span>
+          </div>
+
+          <a class="menu-card" href="https://spergatito.github.io/llamabox/" target="_blank" rel="noopener noreferrer">
+            <div class="icon-circle">
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#442624" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+            </div>
+            <h3>Ir al sitio web</h3>
+            <span>Abrir la tienda pública de LlamaBox en una nueva pestaña</span>
+          </a>
+        </div>
+
+        <button type="button" class="btn btn-red" id="btnLogout" onclick="irAVista('viewLogin')">Cerrar sesión</button>
+      </div>
+    </section>
+
+    <!-- VISTA 3: INVENTARIO -->
+    <section id="viewInventory" class="view-section">
+      <div class="inv-layout">
+        <aside class="inv-sidebar">
+          <div class="product-list" id="productList"></div>
+          <div class="sidebar-footer">
+            <button type="button" class="btn" id="btnLoadFileTrigger">Cargar archivo TXT</button>
+            <input type="file" id="fileInput" accept=".txt,.csv" style="display:none;">
+            <button type="button" class="btn btn-blue" id="btnOpenPreview">ACTUALIZAR TODO</button>
+          </div>
+        </aside>
+
+        <main class="inv-editor">
+          <div class="editor-top">
+            <h2>Información del producto seleccionado</h2>
+            <div class="editor-actions-top">
+              <button type="button" class="btn btn-green btn-sm" id="btnViewStock">Ver reporte de Stock</button>
+              <button type="button" class="btn btn-blue btn-sm" id="btnAddProduct">+ Nuevo</button>
+              <button type="button" class="btn btn-red btn-sm" id="btnDeleteProduct">Eliminar</button>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field-block">
+              <label for="fieldCode">SKU / Plataforma</label>
+              <select id="fieldCode">
+                <option value="NS2">NS2</option>
+                <option value="NSW">NSW</option>
+                <option value="PS5">PS5</option>
+                <option value="PS4">PS4</option>
+                <option value="XBS">XBS</option>
+                <option value="XSX">XSX</option>
+                <option value="XB1">XB1</option>
+                <option value="ETC">ETC</option>
+              </select>
+            </div>
+
+            <div class="field-block span-2">
+              <label for="fieldName">Nombre del producto</label>
+              <input type="text" id="fieldName">
+            </div>
+
+            <div class="field-block">
+              <label for="fieldBrand">Marca / Fabricante</label>
+              <input type="text" id="fieldBrand">
+            </div>
+
+            <div class="field-block">
+              <label for="fieldType">Categoría</label>
+              <input type="text" id="fieldType" placeholder="A, B o C">
+            </div>
+
+            <div class="field-block">
+              <label for="fieldPrice">Precio</label>
+              <input type="text" id="fieldPrice">
+            </div>
+
+            <div class="field-block">
+              <label for="fieldDiscount">Descuento</label>
+              <input type="text" id="fieldDiscount" placeholder="Ej. 0.20">
+            </div>
+
+            <div class="field-block">
+              <label for="fieldStock">Stock (Columna C)</label>
+              <input type="number" id="fieldStock" min="0" step="1">
+            </div>
+
+            <div class="field-block span-4">
+              <label for="fieldDesc">Descripción principal</label>
+              <textarea id="fieldDesc"></textarea>
+            </div>
+          </div>
+
+          <div class="specs-panel">
+            <div class="specs-head">
+              <strong style="font-size:0.85rem; text-transform:uppercase;">Detalles y Especificaciones (Separados por #)</strong>
+              <button type="button" class="btn btn-sm" id="btnAddSpec">+ Añadir detalle</button>
+            </div>
+            <div id="specsContainer" style="display:flex; flex-direction:column; gap:8px;"></div>
+          </div>
+
+          <div class="editor-bottom">
+            <span id="currentRowKeyLabel" style="font-size:0.82rem; font-weight:700; color:var(--ink-muted);">Clave fila (Col A): ---</span>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button type="button" class="btn btn-green" id="btnSaveChanges">Aplicar cambios</button>
+              <button type="button" class="btn btn-blue" id="btnUploadSingle">Subir registro</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- VISTA 4: MANUAL -->
+    <section id="viewManual" class="view-section">
+      <div class="manual-wrapper">
+        <div class="manual-bar">
+          <h2 style="font-size:1.2rem; font-weight:800;">Documentación oficial de LlamaBox</h2>
+          <a class="btn btn-sm btn-blue" href="https://docs.google.com/document/d/1mYfmQNBrpDleQaP0HDVd5-MLJXMVKIrPepdf3GE3oik/preview?rm=demo&tab=t.uu5zkbejii3c" target="_blank" rel="noopener noreferrer">Abrir en pestaña nueva</a>
+        </div>
+        <iframe class="manual-frame" src="https://docs.google.com/document/d/1mYfmQNBrpDleQaP0HDVd5-MLJXMVKIrPepdf3GE3oik/preview?rm=demo&tab=t.uu5zkbejii3c" title="Manual LlamaBox"></iframe>
+      </div>
+    </section>
+
+    <!-- MODAL: VISTA PREVIA Y SUBIDA A LA NUBE -->
+    <div id="modalPreview" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3 style="font-size:1.2rem; font-weight:800;">Vista previa del catálogo (hoja: inventario)</h3>
+          <button type="button" class="btn btn-sm btn-red" id="btnClosePreview">Cerrar</button>
+        </div>
+
+        <div id="previewText" class="preview-area"></div>
+
+        <div class="cloud-box">
+          <div class="cloud-header">
+            <span>Sincronización con Google Sheets (hoja: inventario)</span>
+            <span id="uploadCounterBadge" class="sku-pill">Subidas en sesión: 0</span>
+          </div>
+          <div id="cloudLog" class="cloud-log">Listo para sincronizar filas individuales y stock en la hoja inventario.</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn" id="btnCopyText">Copiar texto</button>
+          <button type="button" class="btn btn-green" id="btnDownloadTxt">Descargar archivo .TXT</button>
+          <button type="button" class="btn btn-blue" id="btnUploadCloud">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#442624" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span id="btnUploadCloudLabel">Subir cambios</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: REPORTE DE STOCK -->
+    <div id="modalStock" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-head">
+          <h3 style="font-size:1.2rem; font-weight:800;">Reporte independiente de Stock</h3>
+          <button type="button" class="btn btn-sm btn-red" id="btnCloseStock">Cerrar</button>
+        </div>
+        <div id="stockPreviewText" class="preview-area"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-green" id="btnDownloadStock">Descargar reporte de Stock .TXT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENEDOR DE MENSAJES EMERGENTES -->
+    <div id="toastContainer" class="toast-container"></div>
+  </div>
+
+  <script>
+    (function () {
+      var ALLOWED_SKUS = ["NS2", "NSW", "PS5", "PS4", "XBS", "XSX", "XB1", "ETC"];
+      var SHEETS_API_URL = "https://script.google.com/macros/s/AKfycbzRxHyiK6JE0eoyLnBwn3YwoP9PXE4uQZGTnpuTYQTd-9yh3TAeHssavB3AgMgV354cXA/exec";
+      var SHEET_NAME = "inventario";
+
+      var products = [
+        {
+          rowKey: "84920",
+          code: "NS2",
+          name: "Nintendo Switch 2",
+          brand: "Nintendo",
+          type: "A",
+          price: "14899.00",
+          discount: "0.30",
+          stock: 15,
+          description: "Comienza tu siguiente aventura de juego con la consola Nintendo Switch 2, ¡está llena de mejoras y divertidas maneras de conectarte con otros para que jueguen todos juntos!",
+          specs: ["Descubre Nintendo Switch 2", "Clasificado: Everyone"],
+          extraPipes: []
+        }
+      ];
+
+      var selectedIndex = 0;
+      var uploadCount = 0;
+      var isUploading = false;
+      var isLoadedFromCloud = false;
+
+      function showToast(message, type) {
+        var container = document.getElementById("toastContainer");
+        if (!container) return;
+        var toast = document.createElement("div");
+        toast.className = "toast " + (type || "success");
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(function () {
+          if (toast.parentNode) {
+            toast.parentNode.removeChild(toast);
+          }
+        }, 3000);
+      }
+
+      function normalizeSku(raw) {
+        var clean = String(raw || "").trim().toUpperCase().slice(0, 3);
+        return ALLOWED_SKUS.indexOf(clean) !== -1 ? clean : "ETC";
+      }
+
+      function generateRowKey() {
+        var existing = {};
+        for (var i = 0; i < products.length; i++) {
+          existing[products[i].rowKey] = true;
+        }
+        var key = "";
+        do {
+          key = String(Math.floor(10000 + Math.random() * 90000));
+        } while (existing[key]);
+        return key;
+      }
+
+      function parseSheetRow(rowKey, colBText, colCNum) {
+        var parts = String(colBText || "").split("|");
+        var firstField = parts[0] || "";
+        var possibleSku = firstField.slice(0, 3).toUpperCase();
+        var code = "ETC";
+        var name = firstField;
+
+        if (ALLOWED_SKUS.indexOf(possibleSku) !== -1) {
+          code = possibleSku;
+          name = firstField.slice(3).trim();
+        }
+
+        var rawDetails = parts[5] || "";
+        var detailArr = rawDetails.split("#");
+        var extraPipes = parts.slice(6);
+
+        return {
+          rowKey: String(rowKey || generateRowKey()).trim(),
+          code: code,
+          name: name,
+          brand: parts[1] || "",
+          type: parts[2] || "",
+          price: parts[3] || "",
+          discount: parts[4] || "",
+          stock: parseInt(colCNum, 10) || 0,
+          description: detailArr[0] || "",
+          specs: detailArr.slice(1),
+          extraPipes: extraPipes
+        };
+      }
+
+      function serializeProductRow(p) {
+        var cleanSpecs = (p.specs || []).filter(function (s) {
+          return String(s).trim() !== "";
+        });
+        var details = [p.description || ""].concat(cleanSpecs).join("#");
+        var baseCols = [
+          normalizeSku(p.code) + (p.name || ""),
+          p.brand || "",
+          p.type || "",
+          p.price || "",
+          p.discount || "",
+          details
+        ];
+        if (p.extraPipes && p.extraPipes.length > 0) {
+          baseCols = baseCols.concat(p.extraPipes);
+        }
+        return baseCols.join("|");
+      }
+
+      function buildCatalogText() {
+        return products.map(function (p) {
+          return p.rowKey + "~" + serializeProductRow(p) + "~" + (parseInt(p.stock, 10) || 0);
+        }).join("\n");
+      }
+
+      function buildStockText() {
+        return products.map(function (p) {
+          return p.rowKey + "|" + normalizeSku(p.code) + "|" + (p.name || "") + "|Stock:" + (parseInt(p.stock, 10) || 0);
+        }).join("\n");
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function renderProductList() {
+        var listEl = document.getElementById("productList");
+        if (!listEl) return;
+        listEl.innerHTML = "";
+        products.forEach(function (prod, idx) {
+          var card = document.createElement("div");
+          card.className = "prod-card" + (idx === selectedIndex ? " selected" : "");
+          card.innerHTML =
+            '<div class="prod-card-top">' +
+              '<span class="sku-pill">' + normalizeSku(prod.code) + ' • #' + escapeHtml(prod.rowKey) + '</span>' +
+              '<span class="stock-pill">Stock: ' + (parseInt(prod.stock, 10) || 0) + '</span>' +
+            '</div>' +
+            '<div class="prod-name">' + escapeHtml(prod.name || "Sin nombre") + '</div>' +
+            '<div class="prod-price">$' + escapeHtml(prod.price || "0.00") + ' • Desc: ' + escapeHtml(prod.discount || "0") + '</div>';
+          card.addEventListener("click", function () {
+            selectProduct(idx);
+          });
+          listEl.appendChild(card);
+        });
+      }
+
+      function renderSpecs(specs) {
+        var container = document.getElementById("specsContainer");
+        if (!container) return;
+        container.innerHTML = "";
+        (specs || []).forEach(function (spec, idx) {
+          var row = document.createElement("div");
+          row.className = "spec-item";
+
+          var input = document.createElement("input");
+          input.type = "text";
+          input.value = spec;
+          input.addEventListener("input", function () {
+            products[selectedIndex].specs[idx] = input.value;
+          });
+
+          var btnDel = document.createElement("button");
+          btnDel.type = "button";
+          btnDel.className = "btn btn-red btn-sm";
+          btnDel.textContent = "X";
+          btnDel.addEventListener("click", function () {
+            products[selectedIndex].specs.splice(idx, 1);
+            renderSpecs(products[selectedIndex].specs);
+          });
+
+          row.appendChild(input);
+          row.appendChild(btnDel);
+          container.appendChild(row);
+        });
+      }
+
+      function selectProduct(idx) {
+        if (!products[idx]) return;
+        selectedIndex = idx;
+        renderProductList();
+        var prod = products[idx];
+        document.getElementById("fieldCode").value = normalizeSku(prod.code);
+        document.getElementById("fieldName").value = prod.name || "";
+        document.getElementById("fieldBrand").value = prod.brand || "";
+        document.getElementById("fieldType").value = prod.type || "";
+        document.getElementById("fieldPrice").value = prod.price || "";
+        document.getElementById("fieldDiscount").value = prod.discount || "";
+        document.getElementById("fieldStock").value = parseInt(prod.stock, 10) || 0;
+        document.getElementById("fieldDesc").value = prod.description || "";
+        var keyLabel = document.getElementById("currentRowKeyLabel");
+        if (keyLabel) {
+          keyLabel.textContent = "Clave fila (Col A): " + prod.rowKey + " | Hoja: " + SHEET_NAME;
+        }
+        renderSpecs(prod.specs || []);
+      }
+
+      function saveCurrentForm() {
+        var prod = products[selectedIndex];
+        if (!prod) return;
+        prod.code = normalizeSku(document.getElementById("fieldCode").value);
+        prod.name = document.getElementById("fieldName").value;
+        prod.brand = document.getElementById("fieldBrand").value;
+        prod.type = document.getElementById("fieldType").value;
+        prod.price = document.getElementById("fieldPrice").value;
+        prod.discount = document.getElementById("fieldDiscount").value;
+        prod.stock = parseInt(document.getElementById("fieldStock").value, 10) || 0;
+        prod.description = document.getElementById("fieldDesc").value;
+        renderProductList();
+      }
+
+      async function callSheetsApi(params) {
+        var query = [];
+        for (var k in params) {
+          if (params[k] !== undefined && params[k] !== null && params[k] !== "") {
+            query.push(encodeURIComponent(k) + "=" + encodeURIComponent(params[k]));
+          }
+        }
+        var url = SHEETS_API_URL + "?" + query.join("&");
+        var res = await fetch(url, { method: "GET", redirect: "follow" });
+        var buf = await res.arrayBuffer();
+        return new TextDecoder("utf-8").decode(buf).trim();
+      }
+
+      async function syncSingleProductRow(prod) {
+        var valorColB = serializeProductRow(prod);
+        var saveRes = await callSheetsApi({
+          hoja: SHEET_NAME,
+          accion: "guardar",
+          clave: prod.rowKey,
+          valor: valorColB
+        });
+        if (saveRes !== "OK") {
+          throw new Error("Fila " + prod.rowKey + ": " + saveRes);
+        }
+
+        var currentNumRaw = await callSheetsApi({
+          hoja: SHEET_NAME,
+          accion: "leer_numero",
+          clave: prod.rowKey
+        });
+        var currentNum = parseInt(currentNumRaw, 10);
+        if (isNaN(currentNum)) currentNum = 0;
+
+        var targetStock = parseInt(prod.stock, 10) || 0;
+        var diff = targetStock - currentNum;
+        if (diff !== 0) {
+          await callSheetsApi({
+            hoja: SHEET_NAME,
+            accion: "sumar",
+            clave: prod.rowKey,
+            cantidad: diff
+          });
+        }
+      }
+
+      window.cargarDesdeSheets = async function () {
+        if (isLoadedFromCloud) {
+          selectProduct(selectedIndex);
+          return;
+        }
+        showToast("Cargando datos de hoja '" + SHEET_NAME + "'...", "info");
+        try {
+          var raw = await callSheetsApi({
+            hoja: SHEET_NAME,
+            accion: "leer_todo"
+          });
+          if (!raw || raw === "HOJA_VACIA" || raw.indexOf("ERROR:") === 0) {
+            showToast("Hoja vacía o sin registros previos", "warn");
+            selectProduct(0);
+            return;
+          }
+          var rows = raw.split("^");
+          var parsedList = [];
+          for (var i = 0; i < rows.length; i++) {
+            var cols = rows[i].split("~");
+            if (cols[0] && cols[0].trim() !== "") {
+              parsedList.push(parseSheetRow(cols[0], cols[1] || "", cols[2] || "0"));
+            }
+          }
+          if (parsedList.length > 0) {
+            products = parsedList;
+            selectedIndex = 0;
+            isLoadedFromCloud = true;
+            selectProduct(0);
+            showToast("Cargados " + products.length + " productos desde Sheets", "success");
+          }
+        } catch (err) {
+          showToast("Error de red al cargar: " + err.message, "error");
+          selectProduct(0);
+        }
+      };
+
+      async function uploadSingleCurrent() {
+        if (isUploading) return;
+        var btn = document.getElementById("btnUploadSingle");
+        isUploading = true;
+        btn.disabled = true;
+        btn.textContent = "Subiendo...";
+
+        try {
+          saveCurrentForm();
+          var prod = products[selectedIndex];
+          if (!prod) return;
+          await syncSingleProductRow(prod);
+          showToast("Registro #" + prod.rowKey + " actualizado en Sheets", "success");
+        } catch (err) {
+          showToast("Error al subir registro: " + err.message, "error");
+        } finally {
+          isUploading = false;
+          btn.disabled = false;
+          btn.textContent = "Subir registro";
+        }
+      }
+
+      async function uploadAllToCloud() {
+        if (isUploading) return;
+        var btn = document.getElementById("btnUploadCloud");
+        var label = document.getElementById("btnUploadCloudLabel");
+        var logEl = document.getElementById("cloudLog");
+        var badge = document.getElementById("uploadCounterBadge");
+
+        isUploading = true;
+        btn.disabled = true;
+        label.textContent = "Subiendo...";
+
+        try {
+          saveCurrentForm();
+          uploadCount += 1;
+          badge.textContent = "Subidas en sesión: " + uploadCount;
+          logEl.textContent = "Sincronizando " + products.length + " filas con '" + SHEET_NAME + "'...";
+
+          for (var i = 0; i < products.length; i++) {
+            logEl.textContent = "Actualizando fila " + (i + 1) + "/" + products.length + " (Clave: " + products[i].rowKey + ")...";
+            await syncSingleProductRow(products[i]);
+          }
+
+          logEl.textContent = "Sincronización completada (#" + uploadCount + "): " + products.length + " filas y stocks actualizados en '" + SHEET_NAME + "'.";
+          showToast("Todos los registros y stocks subidos", "success");
+        } catch (err) {
+          logEl.textContent = "Error durante sincronización: " + err.message;
+          showToast("Error al subir cambios", "error");
+        } finally {
+          isUploading = false;
+          btn.disabled = false;
+          label.textContent = "Subir cambios";
+        }
+      }
+
+      function downloadPlainText(filename, content) {
+        var blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement("a");
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      // LOGIN CON CREDENCIALES
+      document.getElementById("btnLoginSubmit").addEventListener("click", function () {
+        var email = document.getElementById("loginEmail").value.trim();
+        var pass = document.getElementById("loginPass").value.trim();
+        if (!email || !pass) {
+          showToast("Ingresa correo y contraseña o usa el modo prueba", "warn");
+          return;
+        }
+        irAVista("viewMenu");
+        showToast("Sesión iniciada correctamente", "success");
+      });
+
+      // EVENTOS DE INVENTARIO
+      document.getElementById("btnSaveChanges").addEventListener("click", function () {
+        saveCurrentForm();
+        showToast("Cambios aplicados localmente", "success");
+      });
+
+      document.getElementById("btnUploadSingle").addEventListener("click", uploadSingleCurrent);
+
+      document.getElementById("btnAddProduct").addEventListener("click", function () {
+        saveCurrentForm();
+        var newKey = generateRowKey();
+        products.push({
+          rowKey: newKey,
+          code: "NS2",
+          name: "Nuevo Producto",
+          brand: "Marca",
+          type: "B",
+          price: "0.00",
+          discount: "0.00",
+          stock: 1,
+          description: "Descripción del producto",
+          specs: ["Clasificado: Everyone", "Idioma: Español"],
+          extraPipes: []
+        });
+        selectProduct(products.length - 1);
+        showToast("Nuevo producto creado (Clave #" + newKey + ")", "info");
+      });
+
+      document.getElementById("btnDeleteProduct").addEventListener("click", async function () {
+        if (products.length <= 1) {
+          showToast("Debe existir al menos un producto", "warn");
+          return;
+        }
+        var target = products[selectedIndex];
+        var keyToDelete = target.rowKey;
+        products.splice(selectedIndex, 1);
+        selectProduct(Math.max(0, selectedIndex - 1));
+        showToast("Eliminando fila #" + keyToDelete + " en Sheets...", "warn");
+        try {
+          await callSheetsApi({
+            hoja: SHEET_NAME,
+            accion: "borrar",
+            clave: keyToDelete
+          });
+          showToast("Fila #" + keyToDelete + " eliminada de Google Sheets", "error");
+        } catch (err) {
+          showToast("Eliminado local, error en nube: " + err.message, "error");
+        }
+      });
+
+      document.getElementById("btnAddSpec").addEventListener("click", function () {
+        if (!products[selectedIndex].specs) products[selectedIndex].specs = [];
+        products[selectedIndex].specs.push("");
+        renderSpecs(products[selectedIndex].specs);
+      });
+
+      document.getElementById("btnLoadFileTrigger").addEventListener("click", function () {
+        document.getElementById("fileInput").click();
+      });
+
+      document.getElementById("fileInput").addEventListener("change", function (ev) {
+        var file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          var lines = String(e.target.result || "").split(/\r?\n/).filter(function (l) {
+            return l.trim() !== "";
+          });
+          if (lines.length === 0) {
+            showToast("El archivo está vacío", "warn");
+            return;
+          }
+          products = lines.map(function (line) {
+            var tildeParts = line.split("~");
+            if (tildeParts.length >= 2) {
+              return parseSheetRow(tildeParts[0], tildeParts[1], tildeParts[2] || "0");
+            }
+            return parseSheetRow(generateRowKey(), line, 0);
+          });
+          selectProduct(0);
+          showToast("Archivo cargado (" + products.length + " registros)", "success");
+        };
+        reader.readAsText(file, "UTF-8");
+        ev.target.value = "";
+      });
+
+      // MODALES DE VISTA PREVIA, NUBE Y STOCK
+      document.getElementById("btnOpenPreview").addEventListener("click", function () {
+        saveCurrentForm();
+        document.getElementById("previewText").textContent = buildCatalogText();
+        document.getElementById("modalPreview").classList.add("open");
+      });
+
+      document.getElementById("btnClosePreview").addEventListener("click", function () {
+        document.getElementById("modalPreview").classList.remove("open");
+      });
+
+      document.getElementById("btnCopyText").addEventListener("click", function () {
+        var txt = document.getElementById("previewText").textContent;
+        navigator.clipboard.writeText(txt).then(function () {
+          showToast("Texto copiado al portapapeles", "info");
+        });
+      });
+
+      document.getElementById("btnDownloadTxt").addEventListener("click", function () {
+        var txt = document.getElementById("previewText").textContent;
+        downloadPlainText("llamabox_inventario.txt", txt);
+        showToast("Archivo TXT descargado", "success");
+      });
+
+      document.getElementById("btnUploadCloud").addEventListener("click", uploadAllToCloud);
+
+      document.getElementById("btnViewStock").addEventListener("click", function () {
+        saveCurrentForm();
+        document.getElementById("stockPreviewText").textContent = buildStockText();
+        document.getElementById("modalStock").classList.add("open");
+      });
+
+      document.getElementById("btnCloseStock").addEventListener("click", function () {
+        document.getElementById("modalStock").classList.remove("open");
+      });
+
+      document.getElementById("btnDownloadStock").addEventListener("click", function () {
+        var txt = document.getElementById("stockPreviewText").textContent;
+        downloadPlainText("llamabox_stock.txt", txt);
+        showToast("Reporte de Stock descargado", "success");
+      });
+
+      // INICIALIZAR LISTA
+      selectProduct(0);
+    })();
+  </script>
+</body>
+</html>
